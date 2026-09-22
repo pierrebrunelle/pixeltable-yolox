@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import urllib.request
+import warnings
 from pathlib import Path
 from typing import Iterable, Optional, Union
 
@@ -115,12 +116,21 @@ class YoloxModule(nn.Module):
         model.eval()
         model.head.training = False
         model.training = False
-        weights = torch.load(path, map_location=torch.device(device))
+        try:
+            weights = torch.load(path, map_location=torch.device(device), weights_only=True)
+        except Exception:
+            warnings.warn(
+                f"weights_only=True failed to load {path}; retrying with weights_only=False. "
+                "Only load checkpoints from sources you trust."
+            )
+            weights = torch.load(path, map_location=torch.device(device), weights_only=False)
         model.load_state_dict(weights['model'])
         return model
 
     @classmethod
     def __cached_pretrained_weights(cls, model_id: str) -> str:
+        # config names normalize '-' to '_'; pretrained weight files use '_' as well
+        model_id = model_id.replace('-', '_')
         weights_dir = HOME / 'weights'
         weights_dir.mkdir(exist_ok=True, parents=True)
         weights_file = weights_dir / f'{model_id}.pth'

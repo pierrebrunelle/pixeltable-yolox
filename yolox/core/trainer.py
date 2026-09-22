@@ -405,8 +405,9 @@ class Trainer:
                 "start_epoch": self.epoch + 1,
                 "model": save_model.state_dict(),
                 "optimizer": self.optimizer.state_dict(),
-                "best_ap": self.best_ap,
-                "curr_ap": ap,
+                # cast to builtin float: numpy scalars break torch.load(weights_only=True)
+                "best_ap": float(self.best_ap),
+                "curr_ap": float(ap) if ap is not None else ap,
             }
             save_checkpoint(
                 ckpt_state,
@@ -423,7 +424,7 @@ class Trainer:
                     metadata={
                         "epoch": self.epoch + 1,
                         "optimizer": self.optimizer.state_dict(),
-                        "best_ap": self.best_ap,
-                        "curr_ap": ap
+                        "best_ap": float(self.best_ap),
+                        "curr_ap": float(ap) if ap is not None else ap
                     }
                 )
