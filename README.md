@@ -105,7 +105,7 @@ remains accessible for academic and commercial use.
 
 `pixeltable-yolox` is a work in progress. So far, it contains the following changes to the base YOLOX repo:
 
-- `pip install`able with all versions of Python (3.9+)
+- `pip install`able with all versions of Python (3.10+)
 - New `YoloxProcessor` class to simplify inference
 - Refactored CLI for training and evaluation
 - Improved test coverage
