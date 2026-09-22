@@ -56,7 +56,7 @@ COCO_CLASSES[7]
 
 ### Training
 
-First unpack a [COCO dataset](https://cocodataset.org) into `./datasets/COCO`:
+First unpack a [COCO dataset](https://cocodataset.org) into a directory, for example `/data/COCO`:
 
 ```text
 COCO/
@@ -72,20 +72,26 @@ COCO/
 Then on the command line:
 
 ```bash
-yolox train -c yolox-s -d 8 -b 64 --fp16 -o
+yolox train -c yolox-s -d 8 -b 64 --fp16 -o -D data_dir=/data/COCO
 ```
 
-The dataset root defaults to `./datasets/COCO`. Set the `YOLOX_DATADIR` environment variable to use a
-different parent directory (the loader looks in `$YOLOX_DATADIR/COCO`), or override per run:
-
-```bash
-yolox train -c yolox-s -d 8 -b 64 --fp16 -o -D data_dir=/path/to/COCO
-```
+Instead of `-D data_dir=...`, you can set `YOLOX_DATADIR=/data`; the loader then reads
+`$YOLOX_DATADIR/COCO`. With neither set, it reads `datasets/COCO` next to the installed `yolox` package,
+which is the repo root in a source checkout and `site-packages` after `pip install`.
 
 Any config option can be overridden with `-D name=value`, for example `-D num_classes=20
--D max_epoch=50`. For non-COCO directory layouts, the annotation file names (`train_ann`, `val_ann`,
+-D max_epoch=50`. For other directory layouts, the annotation file names (`train_ann`, `val_ann`,
 `test_ann`) and image subdirectories (`train_img_dir`, `val_img_dir`, `test_img_dir`) are also config
-options. `-e`/`--start_epoch` resumes an interrupted run; it is not the total epoch count
+options. Annotation names are resolved under `<data_dir>/annotations/` unless you pass an absolute path.
+For example, a Roboflow COCO export keeps `_annotations.coco.json` next to the images in each split:
+
+```bash
+yolox train -c yolox-s -d 1 -b 16 -D data_dir=/data/roboflow -D num_classes=3 \
+  -D train_ann=/data/roboflow/train/_annotations.coco.json -D train_img_dir=train \
+  -D val_ann=/data/roboflow/valid/_annotations.coco.json -D val_img_dir=valid
+```
+
+`-e`/`--start_epoch` only takes effect together with `--resume`; it is not the total epoch count
 (use `-D max_epoch=...`).
 
 To evaluate a trained checkpoint:
@@ -99,12 +105,16 @@ yolox eval -c yolox-s -b 64 --ckpt out/yolox_s/best_ckpt.pth
 To load a trained checkpoint for inference:
 
 ```python
-from yolox.config import YoloxConfig
+from yolox.config import YoloxS
 from yolox.models import Yolox
 
-config = YoloxConfig.get_named_config("yolox_s")  # or your custom config class
+config = YoloxS()  # or your custom config class
+config.num_classes = 3  # match the -D num_classes=... used for training
 model = Yolox.from_pretrained("out/yolox_s/best_ckpt.pth", config=config)
 ```
+
+Create a new config instance as above rather than modifying the one returned by
+`YoloxConfig.get_named_config()`, which is shared across calls.
 
 For help:
 
