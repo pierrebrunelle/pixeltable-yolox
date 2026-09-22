@@ -25,6 +25,7 @@ from yolox.utils import (
     get_world_size,
     gpu_mem_usage,
     is_parallel,
+    load_checkpoint,
     load_ckpt,
     mem_usage,
     occupy_mem,
@@ -317,7 +318,7 @@ class Trainer:
             else:
                 ckpt_file = self.args.ckpt
 
-            ckpt = torch.load(ckpt_file, map_location=self.device)
+            ckpt = load_checkpoint(ckpt_file, map_location=self.device)
             # resume the model/optimizer state dict
             model.load_state_dict(ckpt["model"])
             self.optimizer.load_state_dict(ckpt["optimizer"])
@@ -338,7 +339,7 @@ class Trainer:
             if self.args.ckpt is not None:
                 logger.info("loading checkpoint for fine tuning")
                 ckpt_file = self.args.ckpt
-                ckpt = torch.load(ckpt_file, map_location=self.device)["model"]
+                ckpt = load_checkpoint(ckpt_file, map_location=self.device)["model"]
                 model = load_ckpt(model, ckpt)
             self.start_epoch = 0
 

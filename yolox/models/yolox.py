@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import urllib.request
-import warnings
 from pathlib import Path
 from typing import Iterable, Optional, Union
 
@@ -14,6 +13,7 @@ import torch.nn as nn
 
 from yolox.config import YoloxConfig
 from yolox.models.processor import Detections, YoloxProcessor
+from yolox.utils import load_checkpoint
 
 from .yolo_head import YoloxHead
 from .yolo_pafpn import YoloPafpn
@@ -116,14 +116,7 @@ class YoloxModule(nn.Module):
         model.eval()
         model.head.training = False
         model.training = False
-        try:
-            weights = torch.load(path, map_location=torch.device(device), weights_only=True)
-        except Exception:
-            warnings.warn(
-                f"weights_only=True failed to load {path}; retrying with weights_only=False. "
-                "Only load checkpoints from sources you trust."
-            )
-            weights = torch.load(path, map_location=torch.device(device), weights_only=False)
+        weights = load_checkpoint(path, map_location=torch.device(device))
         model.load_state_dict(weights['model'])
         return model
 
