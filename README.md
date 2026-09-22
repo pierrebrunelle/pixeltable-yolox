@@ -75,6 +75,37 @@ Then on the command line:
 yolox train -c yolox-s -d 8 -b 64 --fp16 -o
 ```
 
+The dataset root defaults to `./datasets/COCO`. Set the `YOLOX_DATADIR` environment variable to use a
+different parent directory (the loader looks in `$YOLOX_DATADIR/COCO`), or override per run:
+
+```bash
+yolox train -c yolox-s -d 8 -b 64 --fp16 -o -D data_dir=/path/to/COCO
+```
+
+Any config option can be overridden with `-D name=value`, for example `-D num_classes=20
+-D max_epoch=50`. For non-COCO directory layouts, the annotation file names (`train_ann`, `val_ann`,
+`test_ann`) and image subdirectories (`train_img_dir`, `val_img_dir`, `test_img_dir`) are also config
+options. `-e`/`--start_epoch` resumes an interrupted run; it is not the total epoch count
+(use `-D max_epoch=...`).
+
+To evaluate a trained checkpoint:
+
+```bash
+yolox eval -c yolox-s -b 64 --ckpt out/yolox_s/best_ckpt.pth
+```
+
+`best_ckpt.pth` is written only when evaluation AP improves; `latest_ckpt.pth` is always written.
+
+To load a trained checkpoint for inference:
+
+```python
+from yolox.config import YoloxConfig
+from yolox.models import Yolox
+
+config = YoloxConfig.get_named_config("yolox_s")  # or your custom config class
+model = Yolox.from_pretrained("out/yolox_s/best_ckpt.pth", config=config)
+```
+
 For help:
 
 ```bash
