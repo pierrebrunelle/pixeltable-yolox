@@ -113,9 +113,6 @@ config.num_classes = 3  # match the -D num_classes=... used for training
 model = Yolox.from_pretrained("out/yolox_s/best_ckpt.pth", config=config)
 ```
 
-Create a new config instance as above rather than modifying the one returned by
-`YoloxConfig.get_named_config()`, which is shared across calls.
-
 For help:
 
 ```bash
